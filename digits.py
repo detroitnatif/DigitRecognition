@@ -52,14 +52,14 @@ class CNN(nn.Module):
         self.seq = nn.Sequential(
             self.conv1,
             nn.MaxPool2d(kernel_size=2),
-            nn.ReLU(),
+            nn.Tanh(),
             self.conv2,
             self.conv2_drop,
             nn.MaxPool2d(kernel_size=2),
-            nn.ReLU(),
+            nn.Tanh(),
             nn.Flatten(),
             self.fc1,
-            nn.ReLU(),
+            nn.Tanh(),
             nn.Dropout(),  # Dropout doesn't take any arguments
             self.fc2,
             nn.Softmax(dim=1)
