@@ -48,55 +48,28 @@ class CNN(nn.Module):
         self.conv2_drop = nn.Dropout2d()
         self.fc1 = nn.Linear(160, 50)
         self.fc2 = nn.Linear(50, 10)  # OUTPUT IS 10 becuase there is 10 possibilities
+    
         self.seq = nn.Sequential(
-      
-
             self.conv1,
-
-            F.max_pool2d(kernel_size=2),
-
-            F.relu(),
+            nn.MaxPool2d(kernel_size=2),
+            nn.ReLU(),
             self.conv2,
-
             self.conv2_drop,
-            F.max_pool2d(kernel_size=2),
-
-            F.relu(),
+            nn.MaxPool2d(kernel_size=2),
+            nn.ReLU(),
             nn.Flatten(),
             self.fc1,
-
-            F.relu(),
-            F.dropout(training=self.training),
+            nn.ReLU(),
+            nn.Dropout(),  # Dropout doesn't take any arguments
             self.fc2,
-
-            F.softmax(dim=1)
+            nn.Softmax(dim=1)
         )
+        
     def forward(self, x):
         x = self.seq(x)
+        x = F.softmax(x, dim=1) 
         return x
 
-    # def forward(self, x):
-    #     self.seq(
-    #         print('1', x.shape),
-    #         self.conv1(x),
-    #         print('2', x.shape),
-    #         F.max_pool2d(x, 2),
-    #         print('3', x.shape),
-    #         F.relu(x),
-    #         self.conv2(x),
-    #         print('4', x.shape),
-    #         self.conv2_drop(x),
-    #         F.max_pool2d(x, 2),
-    #         print(x.shape),
-    #         F.relu(x),
-    #         self.fc1(x.view(-1, 160)),
-    #         print(x.shape),
-    #         F.relu(x),
-    #         F.dropout(x, training=self.training),
-    #         self.fc2(x),
-    #         print(x.shape),
-    #         F.softmax(x, dim=1)
-    #     )
     # def forward(self, x):
     #     print('1', x.shape)  #          [50, 1, 28, 28])
     #     x = self.conv1(x)
@@ -137,7 +110,7 @@ def train(epoch):
             loss.backward()
             optimizer.step()
             if batch_idx % 100 == 0:
-                print(f"train epoch {epoch} loss [{batch_idx * len(data)}/{len(loaders['train'].dataset)} ({100. * batch_idx / len(loaders['train']):.0f}%)]\t{loss.item():.6f}")
+                print(f"train epoch {i} loss [{batch_idx * len(data)}/{len(loaders['train'].dataset)} ({100. * batch_idx / len(loaders['train']):.0f}%)]\t{loss.item():.6f}")
     print('finished')
     model.eval()
 
