@@ -5,6 +5,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 import torch.nn as nn
 import torch
+import numpy as np
 
 
 
@@ -22,9 +23,10 @@ test_data = datasets.MNIST(
     download=False
 )
 
+
 inputs = train_data.data.shape  # 60_000 x 28 x 28
 targets = train_data.targets    # 60_000 (what each matrix number is)
-print(test_data[9])
+
 loaders = {
     'train': DataLoader(train_data,
                         batch_size=100,
@@ -46,25 +48,72 @@ class CNN(nn.Module):
         self.conv2_drop = nn.Dropout2d()
         self.fc1 = nn.Linear(160, 50)
         self.fc2 = nn.Linear(50, 10)  # OUTPUT IS 10 becuase there is 10 possibilities
+        self.seq = nn.Sequential(
+      
 
+            self.conv1,
+
+            F.max_pool2d(kernel_size=2),
+
+            F.relu(),
+            self.conv2,
+
+            self.conv2_drop,
+            F.max_pool2d(kernel_size=2),
+
+            F.relu(),
+            nn.Flatten(),
+            self.fc1,
+
+            F.relu(),
+            F.dropout(training=self.training),
+            self.fc2,
+
+            F.softmax(dim=1)
+        )
     def forward(self, x):
-        # print('1', x.shape)  #          [50, 1, 28, 28])
-        x = self.conv1(x)
-        # print('2',x.shape)
-        x = F.relu(F.max_pool2d(x, 2))
-        # print('3', x.shape)  #          [50, 10, 12, 12])
-        x = self.conv2_drop(self.conv2(x))
-        x = F.relu(F.max_pool2d(x, 2))
-        # print('4', x.shape)  #          ([50, 20, 4, 4])
-        x = self.fc1(x.view(-1, 160))
-        # print('5', x.shape)  #           ([160, 50])
-        x.relu()
-        x = F.dropout(x, training=self.training)
-        x = self.fc2(x)
-        # print('6', x.shape)
-        x = F.softmax(x, dim=1)
-
+        x = self.seq(x)
         return x
+
+    # def forward(self, x):
+    #     self.seq(
+    #         print('1', x.shape),
+    #         self.conv1(x),
+    #         print('2', x.shape),
+    #         F.max_pool2d(x, 2),
+    #         print('3', x.shape),
+    #         F.relu(x),
+    #         self.conv2(x),
+    #         print('4', x.shape),
+    #         self.conv2_drop(x),
+    #         F.max_pool2d(x, 2),
+    #         print(x.shape),
+    #         F.relu(x),
+    #         self.fc1(x.view(-1, 160)),
+    #         print(x.shape),
+    #         F.relu(x),
+    #         F.dropout(x, training=self.training),
+    #         self.fc2(x),
+    #         print(x.shape),
+    #         F.softmax(x, dim=1)
+    #     )
+    # def forward(self, x):
+    #     print('1', x.shape)  #          [50, 1, 28, 28])
+    #     x = self.conv1(x)
+    #     print('2',x.shape)
+    #     x = F.relu(F.max_pool2d(x, 2))
+    #     print('3', x.shape)  #          [50, 10, 12, 12])
+    #     x = self.conv2_drop(self.conv2(x))
+    #     x = F.relu(F.max_pool2d(x, 2))
+    #     print('4', x.shape)  #          ([50, 20, 4, 4])
+    #     x = self.fc1(x.view(-1, 160))
+    #     print('5', x.shape)  #           ([160, 50])
+    #     x = F.dropout(x, training=self.training)
+    #     x = self.fc2(x)
+    #     print('6', x.shape)
+    #     x = F.softmax(x, dim=1)
+
+    #     return x
     
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 model = CNN().to(device)
@@ -118,9 +167,12 @@ import matplotlib.pyplot as plt
 
 def evaluate():
     model.eval()
-    data, target = test_data[9]
+    idx = np.random.randint(0, len(test_data) - 1)
+    print(idx)
+    data, target = test_data[idx]
+    # print('data', data)
     data = data.unsqueeze(0)
-
+    print('target', target)
     output = model(data)
     print(output)
     pred = output.argmax(1, keepdim=True).item()
